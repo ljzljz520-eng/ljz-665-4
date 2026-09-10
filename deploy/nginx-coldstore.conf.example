@@ -1,0 +1,15 @@
+# Nginx 反向代理示例（可选；启用 HTTPS 后在 .env 中设置 COOKIE_SECURE=true）
+server {
+    listen 80;
+    server_name coldstore.example.com;
+
+    client_max_body_size 25m;   # 略大于后端 20MB 上传限制
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}

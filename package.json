@@ -1,0 +1,22 @@
+{
+  "name": "coldstore-archive",
+  "version": "1.0.0",
+  "description": "冷库设备档案管理系统",
+  "main": "server/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server/index.js",
+    "migrate": "node scripts/migrate.js",
+    "seed": "node scripts/seed.js",
+    "verify": "node scripts/verify.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.3.0",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "multer": "^2.3.0"
+  }
+}
