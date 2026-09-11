@@ -1,4 +1,5 @@
 'use strict';
+require('./env'); // 必须先加载 .env，再读取 DATA_DIR
 const path = require('path');
 const fs = require('fs');
 const Database = require('better-sqlite3');

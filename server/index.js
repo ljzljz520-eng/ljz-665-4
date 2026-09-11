@@ -1,24 +1,11 @@
 'use strict';
+// 注意：必须先加载 .env，再 require 任何读取环境变量的模块（db、routes 等）
+require('./env');
 const path = require('path');
-const fs = require('fs');
 const crypto = require('crypto');
 const express = require('express');
 const session = require('express-session');
-const { migrate } = require('./db');
-
-// 简易 .env 加载（零额外依赖）
-(function loadEnv() {
-  const envPath = path.join(__dirname, '..', '.env');
-  if (!fs.existsSync(envPath)) return;
-  for (const line of fs.readFileSync(envPath, 'utf8').split('\n')) {
-    const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/i);
-    if (m && process.env[m[1]] === undefined) {
-      process.env[m[1]] = m[2].replace(/^["']|["']$/g, '');
-    }
-  }
-})();
-
-const { db } = require('./db');
+const { db, migrate } = require('./db');
 const authRoutes = require('./routes/auth');
 const equipmentRoutes = require('./routes/equipment');
 const manualRoutes = require('./routes/manuals');

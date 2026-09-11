@@ -17,6 +17,11 @@ const Api = {
     let json = null;
     try { json = await resp.json(); } catch (_) { /* 非 json */ }
     if (!resp.ok) {
+      // 会话失效（含账号被停用）：通知应用层清理状态并回登录页
+      if (resp.status === 401 && typeof window.onAuthExpired === 'function'
+          && !url.startsWith('/api/auth/')) {
+        window.onAuthExpired();
+      }
       const err = new Error((json && json.error) || `请求失败 (${resp.status})`);
       err.status = resp.status;
       throw err;

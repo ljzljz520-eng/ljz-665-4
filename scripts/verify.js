@@ -201,6 +201,38 @@ async function waitReady(proc) {
     r = await admin.put('/api/users/' + adminId, { active: 0 });
     check('admin 不能停用自己（400）', r.status === 400);
 
+    console.log('\n[7b] 用户姓名编辑持久化（回归）');
+    r = await admin.put('/api/users/' + newbieId, { real_name: '新人改' });
+    check('修改姓名接口返回新姓名', r.status === 200 && r.json.data.real_name === '新人改');
+    r = await admin.get('/api/users');
+    check('姓名已持久化（重新查询为新值）',
+      r.json.data.find(u => u.id === newbieId).real_name === '新人改');
+    r = await newbie.get('/api/auth/me');
+    check('被改用户的会话实时反映新姓名', r.status === 200 && r.json.data.realName === '新人改');
+    r = await admin.put('/api/users/' + newbieId, { real_name: '   ' });
+    check('空白姓名被拒（400）', r.status === 400);
+
+    console.log('\n[7c] 角色降级/停用对旧会话即时生效（回归）');
+    // newbie 当前为 manager（上文已调整），先确认其旧会话可编辑设备
+    r = await newbie.put('/api/equipment/' + id, { ...validEquip, name: 'newbie改的' });
+    check('降级前 newbie(manager) 可编辑设备', r.status === 200);
+    r = await admin.put('/api/users/' + newbieId, { role: 'viewer' });
+    check('admin 将 newbie 降级为 viewer', r.status === 200 && r.json.data.role === 'viewer');
+    r = await newbie.put('/api/equipment/' + id, { ...validEquip, name: '不该生效' });
+    check('降级后旧会话编辑设备被拒（403）', r.status === 403);
+    r = await newbie.post('/api/equipment', { ...validEquip, code: 'TEST-403' });
+    check('降级后旧会话新建设备被拒（403）', r.status === 403);
+    r = await newbie.get('/api/equipment');
+    check('降级后旧会话仍可按 viewer 查看列表', r.status === 200);
+    r = await newbie.get('/api/auth/me');
+    check('旧会话角色实时刷新为 viewer', r.status === 200 && r.json.data.role === 'viewer');
+    r = await admin.put('/api/users/' + newbieId, { active: 0 });
+    check('admin 停用 newbie 账号', r.status === 200 && r.json.data.active === 0);
+    r = await newbie.get('/api/equipment');
+    check('停用后旧会话立即失效（401）', r.status === 401);
+    r = await newbie.post('/api/auth/login', { username: 'newbie', password: 'pw1234' });
+    check('停用账号无法再登录（401）', r.status === 401);
+
     console.log('\n[8] 前端与静态资源');
     r = await fetch(BASE + '/');
     let homeHtml = await r.text();
@@ -211,6 +243,22 @@ async function waitReady(proc) {
     r = await fetch(BASE + '/some/spa/route', { redirect: 'manual' });
     let spaHtml = await r.text();
     check('未知非 API 路径回退到 index.html（SPA）', r.status === 200 && spaHtml.includes('id="app"'));
+
+    console.log('\n[9] 自定义数据目录与 .env 加载（回归）');
+    check('数据库文件落在自定义 DATA_DIR',
+      db.name === path.join(process.env.DATA_DIR, 'coldstore.db'));
+    const { loadEnv } = require('../server/env');
+    const envFile = path.join(tmpRoot, '.env.test');
+    fs.writeFileSync(envFile, '# 注释行\nVERIFY_ENV_A=hello\nVERIFY_ENV_B="quoted val"\n\nVERIFY_ENV_A=second\n');
+    delete process.env.VERIFY_ENV_A;
+    delete process.env.VERIFY_ENV_B;
+    loadEnv(envFile);
+    check('.env 解析并注入变量（重复键取首次）', process.env.VERIFY_ENV_A === 'hello');
+    check('.env 支持引号包裹的值', process.env.VERIFY_ENV_B === 'quoted val');
+    process.env.VERIFY_ENV_C = 'keep';
+    fs.writeFileSync(envFile, 'VERIFY_ENV_C=override\n');
+    loadEnv(envFile);
+    check('.env 不覆盖已存在的环境变量', process.env.VERIFY_ENV_C === 'keep');
 
   } finally {
     server.close();

@@ -1,4 +1,5 @@
 'use strict';
+require('../env'); // 先加载 .env，再读取 UPLOAD_DIR
 const express = require('express');
 const path = require('path');
 const fs = require('fs');

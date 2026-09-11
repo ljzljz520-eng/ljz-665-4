@@ -1,7 +1,7 @@
 'use strict';
 const express = require('express');
 const { db } = require('../db');
-const { hashPassword, verifyPassword } = require('../auth');
+const { hashPassword, verifyPassword, requireAuth } = require('../auth');
 
 const router = express.Router();
 
@@ -26,9 +26,8 @@ router.post('/logout', (req, res) => {
   req.session.destroy(() => res.json({ data: { ok: true } }));
 });
 
-// 当前登录用户
-router.get('/me', (req, res) => {
-  if (!req.session.user) return res.status(401).json({ error: '未登录' });
+// 当前登录用户（requireAuth 会实时回库刷新角色/姓名，停用账号在此即失效）
+router.get('/me', requireAuth, (req, res) => {
   res.json({ data: req.session.user });
 });
 

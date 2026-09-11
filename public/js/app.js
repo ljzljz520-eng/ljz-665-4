@@ -27,6 +27,15 @@ function toast(msg, ok = true) {
 function canManage() { return STATE.user && ['manager', 'admin'].includes(STATE.user.role); }
 function isAdmin() { return STATE.user && STATE.user.role === 'admin'; }
 
+// 会话失效（如账号被管理员停用/会话过期）：清空本地状态并回登录页
+window.onAuthExpired = function () {
+  if (!STATE.user) return;
+  STATE.user = null;
+  toast('登录状态已失效，请重新登录', false);
+  if (location.hash !== '#/login') location.hash = '/login';
+  else route();
+};
+
 function modal(html) {
   return new Promise(resolve => {
     const mask = document.createElement('div');

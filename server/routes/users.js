@@ -36,23 +36,28 @@ router.post('/', requireRole(3), (req, res) => {
   }
 });
 
-// 重置密码 / 调整角色 / 启停
+// 重置密码 / 调整角色 / 修改姓名 / 启停
 router.put('/:id', requireRole(3), (req, res) => {
   const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id);
   if (!user) return res.status(404).json({ error: '用户不存在' });
-  const { password, role, active } = req.body || {};
+  const { password, role, active, real_name } = req.body || {};
   if (role !== undefined && !ROLES.includes(role)) {
     return res.status(400).json({ error: '角色非法' });
+  }
+  if (real_name !== undefined && String(real_name).trim() === '') {
+    return res.status(400).json({ error: '姓名不能为空' });
   }
   // 不允许停用自己，避免锁死
   if (active === 0 && Number(req.params.id) === req.session.user.id) {
     return res.status(400).json({ error: '不能停用当前登录账号' });
   }
   db.prepare(`UPDATE users SET
+      real_name = COALESCE(?, real_name),
       password_hash = COALESCE(?, password_hash),
       role = COALESCE(?, role),
       active = COALESCE(?, active)
     WHERE id = ?`).run(
+      real_name === undefined ? null : String(real_name).trim(),
       password ? hashPassword(password) : null,
       role || null,
       active === undefined ? null : (active ? 1 : 0),

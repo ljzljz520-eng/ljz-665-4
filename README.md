@@ -55,7 +55,8 @@ npm run verify
 ```
 
 使用独立临时数据目录启动应用并跑端到端用例（覆盖：未认证拦截、三级角色越权拦截、设备 CRUD 与校验、
-温区/状态组合筛选、说明书上传白名单/大小、中文文件名下载、用户管理、SPA 回退），共 38 项断言。
+温区/状态组合筛选、说明书上传白名单/大小、中文文件名下载、用户管理、姓名持久化、角色降级/停用对旧会话
+即时生效、自定义数据目录与 .env 加载、SPA 回退），共 55 项断言。
 
 ## API 摘要
 
@@ -111,7 +112,8 @@ pm2 start deploy/ecosystem.config.js && pm2 save
 ```
 server/            Express 应用
   index.js         入口（会话/静态/SPA回退/错误处理/启动即迁移）
-  db.js auth.js    SQLite 连接、scrypt 密码与角色中间件
+  env.js           .env 加载（所有入口共用，环境变量优先）
+  db.js auth.js    SQLite 连接、scrypt 密码与角色中间件（每次请求实时回库核对角色/停用状态）
   routes/          auth / equipment / manuals / users
 db/schema.sql      表结构（users / equipment / manuals）
 public/            原生 SPA（登录、设备列表筛选、详情+上传、用户管理）
