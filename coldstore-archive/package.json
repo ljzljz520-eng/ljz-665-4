@@ -1,0 +1,18 @@
+{
+  "name": "coldstore-archive",
+  "version": "1.0.0",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "verify": "bash scripts/verify.sh"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "冷库设备档案管理系统",
+  "dependencies": {
+    "better-sqlite3": "^12.11.1",
+    "express": "^5.2.1",
+    "multer": "^2.4.0"
+  }
+}
