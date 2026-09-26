@@ -1,0 +1,20 @@
+{
+  "name": "coldstore-archive",
+  "version": "1.0.0",
+  "description": "冷库设备档案管理系统（设备台账 / 温区与状态筛选 / 说明书上传 / RBAC）",
+  "main": "server/src/index.js",
+  "scripts": {
+    "start": "node server/src/index.js",
+    "init-db": "node server/src/initDb.js",
+    "verify": "node scripts/verify.js"
+  },
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.3.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1"
+  }
+}
